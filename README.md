@@ -1,1 +1,1 @@
-# app2.transfrencias
+# App 2 sistema de transferencias
