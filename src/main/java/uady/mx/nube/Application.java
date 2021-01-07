@@ -1,4 +1,4 @@
-package uady.mx;
+package uady.mx.nube;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

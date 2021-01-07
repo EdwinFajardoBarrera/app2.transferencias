@@ -1,13 +1,13 @@
-package uady.mx.app2transferencias;
+package uady.mx.nube;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class App2TransferenciasApplicationTests {
+class ApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+	// @Test
+	// void contextLoads() {
+	// }
 
 }
