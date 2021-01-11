@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 public class PagoDTO {
     
+    private Integer idPago;
     private Double monto;
     private String cuentaOrigen;
     private String cuentaDestino;
@@ -13,7 +14,8 @@ public class PagoDTO {
     private String fechaProcesa;
     private String estado;
 
-    public PagoDTO(Double monto, String cuentaOrigen, String cuentaDestino, String fechaRegistro, String fechaProcesa, String estado){
+    public PagoDTO(Integer idPago, Double monto, String cuentaOrigen, String cuentaDestino, String fechaRegistro, String fechaProcesa, String estado){
+        this.idPago = idPago;
         this.monto = monto;
         this.cuentaOrigen = cuentaOrigen;
         this.cuentaDestino = cuentaDestino;
@@ -23,6 +25,10 @@ public class PagoDTO {
     }
 
     //public PagoDTO(){}
+
+    public Integer getIdPago(){
+        return this.idPago;
+    }
 
     public Double getMonto(){
         return this.monto;
@@ -48,6 +54,10 @@ public class PagoDTO {
         return this.estado;
     }
 
+    public void setIdPago(Integer idPago){
+        this.idPago = idPago;
+    }
+    
     public void setMonto(Double monto){
         this.monto = monto;
     }

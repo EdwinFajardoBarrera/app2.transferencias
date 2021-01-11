@@ -1,16 +1,3 @@
-// package uady.mx.nube;
-
-// import org.springframework.boot.SpringApplication;
-// import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-// @SpringBootApplication
-// public class Application {
-
-// 	public static void main(String[] args) {
-// 		SpringApplication.run(Application.class, args);
-// 	}
-
-// }
 package uady.mx.nube;
 
 import org.springframework.amqp.core.Binding;
@@ -26,8 +13,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+import uady.mx.nube.service.Receiver;
 
 @SpringBootApplication
+@EnableAsync
 public class Application {
 
   @Value("${sample.rabbitmq.exchange}")
