@@ -1,7 +1,7 @@
 package uady.mx.nube.model;
 
 import javax.persistence.*;
-// import javax.persistence.criteria.CriteriaBuilder;
+
 
 @Entity
 @Table(name = "Cuentas")
@@ -16,11 +16,10 @@ public class Cuenta {
     @Column(name = "balance")
     private Double balance;
 
-    public Cuenta(String noCuenta, Double balance) {
+    public Cuenta(String noCuenta, Double balance){
         this.noCuenta = noCuenta;
         this.balance = balance;
     }
-
     public Cuenta() {
     }
 
@@ -50,7 +49,10 @@ public class Cuenta {
 
     @Override
     public String toString() {
-        return "{" + " número de cuenta ='" + getNoCuenta() + "'" + " balance ='" + getBalance() + "'" + " idCuenta='"
-                + getId() + "}";
+        return "{" +
+                " número de cuenta ='" + getNoCuenta() + "'" +
+                " balance ='" + getBalance() + "'" +
+                " idCuenta='" + getId() +
+                "}";
     }
 }

@@ -1,91 +1,112 @@
 package uady.mx.nube.model;
 
-import java.sql.Date;
+import java.util.Date;
+
 import javax.persistence.*;
 
+import uady.mx.nube.enums.EstadoEnum;
 @Entity
-@Table(name = "Pagos")
+@Table(name = "pagos")
 public class Pago {
 
-  public Pago() {
-  }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+    @Column(name = "monto")
+    private Double monto;
 
-  @Column(name = "monto")
-  private Double monto;
+    @ManyToOne
+    @JoinColumn(name="cuenta_origen", referencedColumnName = "id")
+    private Cuenta cuentaOrigen;
 
-  @Column(name = "fecha_procesa")
-  private Date fechaProcesa;
+    @ManyToOne
+    @JoinColumn(name="cuenta_destino", referencedColumnName = "id")
+    private Cuenta cuentaDestino;
 
-  @Column(name = "fecha_registro")
-  private Date fechaRegistro;
+    @Column(name = "fecha_registro")
+    private Date fechaRegistro;
 
-  @Column(name = "estado")
-  private String estado;
+    @Column(name = "fecha_procesa")
+    private Date fechaProcesa;
 
-  @Column(name = "cuenta_origen")
-  private Integer cuentaOrigen;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private EstadoEnum estado;
 
-  @Column(name = "cuenta_destino")
-  private Integer cuentaDestino;
+    public Pago(double monto, Cuenta cuentaOrigen, Cuenta cuentaDestino){
+        this.monto = monto;
+        this.cuentaOrigen = cuentaOrigen;
+        this.cuentaDestino = cuentaDestino;
+    }
 
-  public Integer getId() {
-    return id;
-  }
+    public Pago(){}
 
-  public Double getMonto() {
-    return monto;
-  }
+    public Integer getId(){
+        return this.id;
+    }
 
-  public String getEstado() {
-    return estado;
-  }
+    public Double getMonto(){
+        return this.monto;
+    }
 
-  public Date getFechaProcesa() {
-    return fechaProcesa;
-  }
+    public Cuenta getCuentaOrigen(){
+        return this.cuentaOrigen;
+    }
 
-  public Date getFechaRegistro() {
-    return fechaRegistro;
-  }
+    public Cuenta getCuentaDestino(){
+        return this.cuentaDestino;
+    }
 
-  public Integer getCuentaDestino() {
-    return cuentaDestino;
-  }
+    public Date getFechaRegistro(){
+        return this.fechaRegistro;
+    }
 
-  public Integer getCuentaOrigen() {
-    return cuentaOrigen;
-  }
+    public Date getFechaProcesa(){
+        return this.fechaProcesa;
+    }
 
-  public void setCuentaDestino(Integer cuentaDestino) {
-    this.cuentaDestino = cuentaDestino;
-  }
+    public EstadoEnum getEstado(){
+        return this.estado;
+    }
 
-  public void setCuentaOrigen(Integer cuentaOrigen) {
-    this.cuentaOrigen = cuentaOrigen;
-  }
+    public void setId(Integer id){
+        this.id = id;
+    }
 
-  public void setEstado(String estado) {
-    this.estado = estado;
-  }
+    public void setMonto(Double monto){
+        this.monto = monto;
+    }
 
-  public void setFechaProcesa(Date fechaProcesa) {
-    this.fechaProcesa = fechaProcesa;
-  }
+    public void setCuentaOrigen(Cuenta cuentaOrigen){
+        this.cuentaOrigen = cuentaOrigen;
+    }
 
-  public void setFechaRegistro(Date fechaRegistro) {
-    this.fechaRegistro = fechaRegistro;
-  }
+    public void setCuentaDestino(Cuenta cuentaDestino){
+        this.cuentaDestino = cuentaDestino;
+    }
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
+    public void setFechaRegistro(Date fechaRegistro){
+        this.fechaRegistro = fechaRegistro;
+    }
 
-  public void setMonto(Double monto) {
-    this.monto = monto;
-  }
+    public void setFechaProcesa(Date fechaProcesa){
+        this.fechaProcesa = fechaProcesa;
+    }
 
+    public void setEstado(EstadoEnum estado){
+        this.estado = estado;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                " monto ='" + getMonto() + "'" +
+                " cuentaOrigen ='" + getCuentaOrigen() + "'" +
+                " cuentaDestino ='" + getCuentaDestino() + "'" +
+                " fechaRegistro ='" + getFechaRegistro() + "'" +
+                " fechaProcesamiento ='" + getFechaProcesa() + 
+                "}";
+    }
+    
 }

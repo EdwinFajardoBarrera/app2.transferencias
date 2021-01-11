@@ -1,21 +1,28 @@
 package uady.mx.nube.service;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.Optional;
 
 import com.google.gson.Gson;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.JsonObjectSerializer;
+import org.springframework.scheduling.annotation.Async;
 // import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javassist.NotFoundException;
+import uady.mx.nube.dto.PagoDTO;
+import uady.mx.nube.dto.RegistroDTO;
+import uady.mx.nube.enums.EstadoEnum;
 import uady.mx.nube.model.Cuenta;
 import uady.mx.nube.model.Pago;
 import uady.mx.nube.repository.CuentaRepository;
 import uady.mx.nube.repository.PagoRepository;
+import uady.mx.nube.util.Util;
 
 @Service
 public class Receiver {
@@ -26,48 +33,71 @@ public class Receiver {
   @Autowired
   PagoRepository pr;
 
+  private Logger logger = LogManager.getLogger(this.getClass());
+
   @RabbitListener(queues = "${sample.rabbitmq.queue}")
-  public void recievedMessage(String payment) throws Exception {
-    System.out.println("Recieved Message: " + payment);
+  public String receiveMessage(String pago) {
+    logger.info("Mensaje Recibido");
+    Gson g = new Gson();
+    PagoDTO payment = g.fromJson(pago, PagoDTO.class);
+    RegistroDTO registro = new RegistroDTO();
 
-    // String replace = payment.replace("'", "\"");
-    // System.out.println("Reemplazado: " + replace);
+    String fechaProcesamiento = Util.getFormattedDate(new Date());
+    String estado = EstadoEnum.PROCESADO.name();
+    String message = "El pago ha sido recibido con exito";
 
-    // Gson gson = new Gson();
-    // Pago pp = gson.fromJson(payment, Pago.class);
+    registro.setEstado(estado);
+    registro.setFechaProcesa(fechaProcesamiento);
+    registro.setMessage(message);
 
-    Pago pago = new Pago();
+    try {
+      this.processPayment(payment);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
-    pago.setCuentaDestino(2);
-    pago.setCuentaOrigen(1);
-    pago.setEstado("new");
-    pago.setFechaProcesa(new Date(System.currentTimeMillis()));
-    pago.setFechaRegistro(new Date(System.currentTimeMillis()));
-    pago.setMonto(500.0);
+    String response = g.toJson(registro);
+    
+    return response;
+  }
 
-    // Cuando se reciba un mensaje del Queue
-    int idOrigen = pago.getCuentaOrigen();
-    int idDestino = pago.getCuentaDestino();
-    Optional<Cuenta> cuentaOrigen = cr.findById(idOrigen);
-    Optional<Cuenta> cuentaDestino = cr.findById(idDestino);
+  @Async
+  public void processPayment(PagoDTO payment) throws Exception {
+    
+    Optional<Pago> pay = pr.findById(payment.getIdPago());
+
+    if (!pay.isPresent()){
+      throw new NotFoundException("El pago no ha sido registrado");
+    }
+
+    Pago pago = pay.get();
+
+
+    pago.setFechaProcesa(new Date());
+
+    Cuenta cuentaOrigen = pago.getCuentaOrigen();
+    Cuenta cuentaDestino = pago.getCuentaDestino();
 
     // Si no existe la cuenta que envía el pago (Fallo)
-    if (!cuentaOrigen.isPresent()) {
+    if (cuentaOrigen == null) {
+      pago.setEstado(EstadoEnum.ANULADO);
+      pr.save(pago);
       throw new NotFoundException("El número origen de cuenta no existe");
       // SEND Dead Letter Queue
     }
 
     // Si no existe la cuenta que enrecibe el pago (Fallo)
-    if (!cuentaDestino.isPresent()) {
+    if (cuentaDestino == null) {
+      pago.setEstado(EstadoEnum.ANULADO);
+      pr.save(pago);
       throw new NotFoundException("El número de cuenta no existe");
       // SEND Dead Letter Queue
     }
 
-    Cuenta origen = cuentaOrigen.get();
-    Cuenta destino = cuentaDestino.get();
-
     // Si no hay suficientes fondos en la cuenta de quien envía (Fallo)
-    if (origen.getBalance() < pago.getMonto()) {
+    if (cuentaOrigen.getBalance() < pago.getMonto()) {
+      pago.setEstado(EstadoEnum.NO_AUTORIZADO);
+      pr.save(pago);
       throw new Exception("Los fondos no son suficientes");
       // SEND Dead Letter Queue
     }
@@ -78,15 +108,15 @@ public class Receiver {
      **/
 
     // Se resta el monto del balance de quien transfiere
-    origen.setBalance(origen.getBalance() - pago.getMonto());
-    cr.save(origen);
+    cuentaOrigen.setBalance(cuentaOrigen.getBalance() - pago.getMonto());
+    cr.save(cuentaOrigen);
 
     // Se aumenta el monto en el balance de quien recibe
-    destino.setBalance(destino.getBalance() + pago.getMonto());
-    cr.save(destino);
+    cuentaDestino.setBalance(cuentaDestino.getBalance() + pago.getMonto());
+    cr.save(cuentaDestino);
 
+    pago.setEstado(EstadoEnum.PROCESADO);
     // Se almacena el pago
     pr.save(pago);
-
   }
 }
