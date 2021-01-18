@@ -5,13 +5,9 @@ import java.util.Optional;
 
 import com.google.gson.Gson;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jackson.JsonObjectSerializer;
 import org.springframework.scheduling.annotation.Async;
-// import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javassist.NotFoundException;
@@ -33,22 +29,15 @@ public class Receiver {
   @Autowired
   PagoRepository pr;
 
-  private Logger logger = LogManager.getLogger(this.getClass());
+  // private Logger logger = LogManager.getLogger(this.getClass());
 
   @RabbitListener(queues = "${sample.rabbitmq.queue}")
-  public String receiveMessage(String pago) {
-    logger.info("Mensaje Recibido");
+  public void receiveMessage(String pago) {
+    System.out.println("=====");
+    System.out.println("PAGO RECIBIDO: " + pago);
+
     Gson g = new Gson();
     PagoDTO payment = g.fromJson(pago, PagoDTO.class);
-    RegistroDTO registro = new RegistroDTO();
-
-    String fechaProcesamiento = Util.getFormattedDate(new Date());
-    String estado = EstadoEnum.PROCESADO.name();
-    String message = "El pago ha sido recibido con exito";
-
-    registro.setEstado(estado);
-    registro.setFechaProcesa(fechaProcesamiento);
-    registro.setMessage(message);
 
     try {
       this.processPayment(payment);
@@ -56,22 +45,18 @@ public class Receiver {
       e.printStackTrace();
     }
 
-    String response = g.toJson(registro);
-    
-    return response;
   }
 
   @Async
   public void processPayment(PagoDTO payment) throws Exception {
-    
+
     Optional<Pago> pay = pr.findById(payment.getIdPago());
 
-    if (!pay.isPresent()){
+    if (!pay.isPresent()) {
       throw new NotFoundException("El pago no ha sido registrado");
     }
 
     Pago pago = pay.get();
-
 
     pago.setFechaProcesa(new Date());
 
@@ -116,7 +101,14 @@ public class Receiver {
     cr.save(cuentaDestino);
 
     pago.setEstado(EstadoEnum.PROCESADO);
+    Date fechaProcesa = new Date();
+    pago.setFechaProcesa(fechaProcesa);
     // Se almacena el pago
     pr.save(pago);
+
+    Gson g = new Gson();
+    System.out.println("=====");
+    System.out.println("PAGO SATISFACTORIO: " + g.toJson(pago));
+
   }
 }

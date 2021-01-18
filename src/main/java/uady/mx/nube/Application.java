@@ -28,7 +28,6 @@ public class Application {
   @Value("${sample.rabbitmq.queue}")
   String queueName;
 
- 
   @Bean
   SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
       MessageListenerAdapter listenerAdapter) {
@@ -42,15 +41,13 @@ public class Application {
   @Bean
   MessageListenerAdapter listenerAdapter(Receiver receiver) {
     MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(receiver, "receiveMessage");
-    messageListenerAdapter.setMessageConverter(jsonMessageConverter());
-
+    // messageListenerAdapter.setMessageConverter(jsonMessageConverter());
     return messageListenerAdapter;
-    
   }
-  @Bean
-  public MessageConverter jsonMessageConverter() {
-    return new Jackson2JsonMessageConverter();
-  }
+  // @Bean
+  // public MessageConverter jsonMessageConverter() {
+  // return new Jackson2JsonMessageConverter();
+  // }
 
   public static void main(String[] args) throws InterruptedException {
     SpringApplication.run(Application.class, args);
