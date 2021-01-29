@@ -9,6 +9,7 @@ public class PagoDTO {
     private String fechaRegistro;
     private String fechaProcesa;
     private String estado;
+    private Integer retry;
 
     public PagoDTO(Integer idPago, Double monto, String cuentaOrigen, String cuentaDestino, String fechaRegistro,
             String fechaProcesa, String estado) {
@@ -19,6 +20,7 @@ public class PagoDTO {
         this.fechaRegistro = fechaRegistro;
         this.fechaProcesa = fechaProcesa;
         this.estado = estado;
+        this.retry = 0;
     }
 
     public PagoDTO() {
@@ -52,6 +54,10 @@ public class PagoDTO {
         return this.estado;
     }
 
+    public Integer getRetry(){
+        return this.retry;
+    }
+
     public void setIdPago(Integer idPago) {
         this.idPago = idPago;
     }
@@ -78,5 +84,9 @@ public class PagoDTO {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public void setRetry(Integer retry){
+        this.retry = retry;
     }
 }
