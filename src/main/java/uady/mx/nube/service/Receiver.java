@@ -5,7 +5,9 @@ import java.util.Optional;
 
 import com.google.gson.Gson;
 
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -29,10 +31,13 @@ public class Receiver {
   @Autowired
   PagoRepository pr;
 
+  @Autowired
+  private RabbitTemplate template;
+
   // private Logger logger = LogManager.getLogger(this.getClass());
 
   @RabbitListener(queues = "${sample.rabbitmq.queue}")
-  public void receiveMessage(String pago) {
+  public void receiveMessage(String pago) throws AmqpRejectAndDontRequeueException {
     System.out.println("=====");
     System.out.println("PAGO RECIBIDO: " + pago);
 
@@ -43,8 +48,15 @@ public class Receiver {
       this.processPayment(payment);
     } catch (Exception e) {
       e.printStackTrace();
+      throw new AmqpRejectAndDontRequeueException("Fallo");
     }
 
+  }
+
+  @RabbitListener(queues = "DLQ_queue")
+  public void recieveDQL(String pago) {
+    System.out.println("=====");
+    System.out.println("DQL RECIBIDO: " + pago);
   }
 
   @Async
