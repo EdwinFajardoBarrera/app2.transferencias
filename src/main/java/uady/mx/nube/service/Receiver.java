@@ -21,7 +21,6 @@ import uady.mx.nube.model.Pago;
 import uady.mx.nube.repository.CuentaRepository;
 import uady.mx.nube.repository.PagoRepository;
 
-
 @Service
 public class Receiver {
 
@@ -31,7 +30,7 @@ public class Receiver {
   String routingkey;
 
   private static final Integer MAX_ATTEMPTS = 3;
-  
+
   @Autowired
   CuentaRepository cr;
 
@@ -44,7 +43,6 @@ public class Receiver {
   @Autowired
   private PagoService pagoService;
 
-
   @RabbitListener(queues = "${sample.rabbitmq.queue}")
   public void receiveMessage(String pago) throws AmqpRejectAndDontRequeueException {
     System.out.println("=====");
@@ -52,11 +50,11 @@ public class Receiver {
 
     Gson g = new Gson();
     PagoDTO payment = g.fromJson(pago, PagoDTO.class);
-    
+
     try {
       this.processPayment(payment);
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
       throw new AmqpRejectAndDontRequeueException(e.getMessage());
     }
 
@@ -75,18 +73,17 @@ public class Receiver {
     payment.setRetry(retry);
 
     System.out.println("PAYMENT RECIBIDO: " + payment.getRetry());
-    
-    
-    if (payment.getRetry() <= MAX_ATTEMPTS){
-      String pay = g.toJson(payment);
-      rabbitTemplate.convertAndSend(exchange, routingkey,pay);
 
-    } else{
+    if (payment.getRetry() <= MAX_ATTEMPTS) {
+      String pay = g.toJson(payment);
+      rabbitTemplate.convertAndSend(exchange, routingkey, pay);
+
+    } else {
       System.out.println("Se excedio: " + pago);
 
       Pago fPayment = pagoService.getPago(payment.getIdPago());
 
-      if (fPayment != null){
+      if (fPayment != null) {
         fPayment.setEstado(EstadoEnum.NO_AUTORIZADO);
         Date fechaProcesa = new Date();
         fPayment.setFechaProcesa(fechaProcesa);
@@ -111,7 +108,7 @@ public class Receiver {
     pago.setFechaProcesa(new Date());
 
     Cuenta cuentaOrigen = pago.getCuentaOrigen();
-    //Cuenta cuentaDestino = payment.getCuentaDestino();
+    // Cuenta cuentaDestino = payment.getCuentaDestino();
 
     // Si no existe la cuenta que envía el pago (Fallo)
     if (cuentaOrigen == null) {
@@ -129,7 +126,8 @@ public class Receiver {
     pr.save(pago);
 
     // Si no hay suficientes fondos en la cuenta de quien envía (Fallo)
-    if (cuentaOrigen.getBalance() < pago.getMonto()) {
+    // if (cuentaOrigen.getBalance() < pago.getMonto()) {
+    if (cuentaOrigen.getBalance().compareTo(pago.getMonto()) == -1) {
       throw new Exception("Los fondos no son suficientes");
       // SEND Dead Letter Queue
     }
@@ -140,11 +138,13 @@ public class Receiver {
      **/
 
     // Se resta el monto del balance de quien transfiere
-    cuentaOrigen.setBalance(cuentaOrigen.getBalance() - pago.getMonto());
+    // cuentaOrigen.setBalance(cuentaOrigen.getBalance() - pago.getMonto());
+    cuentaOrigen.setBalance(cuentaOrigen.getBalance().subtract(pago.getMonto()));
     cr.save(cuentaOrigen);
 
     // Se aumenta el monto en el balance de quien recibe
-    cuentaD.setBalance(cuentaD.getBalance() + pago.getMonto());
+    // cuentaD.setBalance(cuentaD.getBalance() + pago.getMonto());
+    cuentaD.setBalance(cuentaD.getBalance().add(pago.getMonto()));
     cr.save(cuentaD);
 
     pago.setEstado(EstadoEnum.PROCESADO);

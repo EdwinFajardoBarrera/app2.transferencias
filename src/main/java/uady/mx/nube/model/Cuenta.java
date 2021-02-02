@@ -1,7 +1,8 @@
 package uady.mx.nube.model;
 
-import javax.persistence.*;
+import java.math.BigDecimal;
 
+import javax.persistence.*;
 
 @Entity
 @Table(name = "Cuentas")
@@ -14,12 +15,13 @@ public class Cuenta {
     private String noCuenta;
 
     @Column(name = "balance")
-    private Double balance;
+    private BigDecimal balance;
 
-    public Cuenta(String noCuenta, Double balance){
+    public Cuenta(String noCuenta, BigDecimal balance) {
         this.noCuenta = noCuenta;
         this.balance = balance;
     }
+
     public Cuenta() {
     }
 
@@ -39,20 +41,17 @@ public class Cuenta {
         this.noCuenta = noCuenta;
     }
 
-    public double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 
-    public void setBalance(double balance) {
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 
     @Override
     public String toString() {
-        return "{" +
-                " número de cuenta ='" + getNoCuenta() + "'" +
-                " balance ='" + getBalance() + "'" +
-                " idCuenta='" + getId() +
-                "}";
+        return "{" + " número de cuenta ='" + getNoCuenta() + "'" + " balance ='" + getBalance() + "'" + " idCuenta='"
+                + getId() + "}";
     }
 }
